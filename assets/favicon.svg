@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Direct-OPD">
+  <rect width="64" height="64" rx="14" fill="#660874"/>
+  <path
+    d="M19 12h17c11.4 0 19.5 8 19.5 20S47.4 52 36 52H19V12Zm10.2 9.5v21h5.9c5.9 0 10-4.2 10-10.5s-4.1-10.5-10-10.5h-5.9Z"
+    fill="#fff"/>
+</svg>

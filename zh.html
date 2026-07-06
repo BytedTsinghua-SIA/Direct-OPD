@@ -3,11 +3,77 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Direct-OPD | Weak-to-Strong Generalization</title>
+    <title>Direct-OPD：通过 Direct On-Policy Distillation 实现 Weak-to-Strong Generalization</title>
     <meta
       name="description"
-      content="Weak-to-Strong Generalization via Direct On-Policy Distillation."
+      content="Direct-OPD 是一种 weak-to-strong 后训练方法，将小 RL 教师学到的策略变化作为强学生模型自身 on-policy 状态上的稠密监督，从而提升推理模型，而不是模仿弱教师的最终策略分布。"
     />
+    <meta
+      name="keywords"
+      content="Direct-OPD, Direct On-Policy Distillation, weak-to-strong generalization, 弱到强泛化, 弱到强学习, on-policy distillation, 策略变化, policy shift, RL-induced policy shift, 强化学习, RLVR, 可验证奖励, 推理模型, 大语言模型, LLM 后训练, 稠密监督, implicit reward, teacher reference, small RL teacher, Qwen3, R1-Distill, JustRL, QuestA, Tsinghua AIR, 清华大学"
+    />
+    <meta name="author" content="Shiyuan Feng, Huan-ang Gao, Haohan Chi, Hanlin Wu, Zhilong Zhang, Zheng Jiang, Bingxiang He, Wei-Ying Ma, Ya-Qin Zhang, Hao Zhou" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#660874" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Direct-OPD" />
+    <meta property="og:title" content="Direct-OPD：通过 Direct On-Policy Distillation 实现 Weak-to-Strong Generalization" />
+    <meta property="og:description" content="将小 RL 教师学到的 policy shift 作为强学生模型自身 on-policy 状态上的稠密监督。" />
+    <meta property="og:image" content="./assets/intro-opd-vs-direct.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Direct-OPD: Weak-to-Strong Generalization via Direct On-Policy Distillation" />
+    <meta name="twitter:description" content="A weak-to-strong post-training method that transfers policy shifts learned by small RL teachers to stronger reasoning models." />
+    <meta name="twitter:image" content="./assets/intro-opd-vs-direct.png" />
+    <meta name="citation_title" content="Weak-to-Strong Generalization via Direct On-Policy Distillation" />
+    <meta name="citation_author" content="Feng, Shiyuan" />
+    <meta name="citation_author" content="Gao, Huan-ang" />
+    <meta name="citation_author" content="Chi, Haohan" />
+    <meta name="citation_author" content="Wu, Hanlin" />
+    <meta name="citation_author" content="Zhang, Zhilong" />
+    <meta name="citation_author" content="Jiang, Zheng" />
+    <meta name="citation_author" content="He, Bingxiang" />
+    <meta name="citation_author" content="Ma, Wei-Ying" />
+    <meta name="citation_author" content="Zhang, Ya-Qin" />
+    <meta name="citation_author" content="Zhou, Hao" />
+    <meta name="citation_publication_date" content="2026" />
+    <meta name="citation_keywords" content="Direct On-Policy Distillation; weak-to-strong generalization; on-policy distillation; reinforcement learning; reasoning models" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ScholarlyArticle",
+        "name": "Weak-to-Strong Generalization via Direct On-Policy Distillation",
+        "headline": "Direct-OPD: Weak-to-Strong Generalization via Direct On-Policy Distillation",
+        "description": "Direct-OPD transfers the RL-induced policy shift from small RL teachers to stronger student models as dense supervision on the student's own on-policy states.",
+        "datePublished": "2026",
+        "keywords": [
+          "Direct-OPD",
+          "Direct On-Policy Distillation",
+          "weak-to-strong generalization",
+          "on-policy distillation",
+          "reinforcement learning",
+          "RLVR",
+          "reasoning models",
+          "LLM post-training"
+        ],
+        "author": [
+          {"@type": "Person", "name": "Shiyuan Feng"},
+          {"@type": "Person", "name": "Huan-ang Gao"},
+          {"@type": "Person", "name": "Haohan Chi"},
+          {"@type": "Person", "name": "Hanlin Wu"},
+          {"@type": "Person", "name": "Zhilong Zhang"},
+          {"@type": "Person", "name": "Zheng Jiang"},
+          {"@type": "Person", "name": "Bingxiang He"},
+          {"@type": "Person", "name": "Wei-Ying Ma"},
+          {"@type": "Person", "name": "Ya-Qin Zhang"},
+          {"@type": "Person", "name": "Hao Zhou"}
+        ],
+        "isPartOf": {
+          "@type": "ResearchProject",
+          "name": "Direct-OPD"
+        }
+      }
+    </script>
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
     <script>
       window.MathJax = {
@@ -20,25 +86,24 @@
   <body>
     <header class="topbar">
       <a class="brand" href="#hero">Direct-OPD</a>
-      <nav aria-label="Page navigation">
-        <a href="#method">Method</a>
-        <a href="#results">Results</a>
-      </nav>
+      <div class="topbar-right">
+        <nav aria-label="Page navigation">
+          <a href="#method">Method</a>
+          <a href="#results">Results</a>
+        </nav>
+        <a class="language-link" href="./en.html" lang="en">EN</a>
+      </div>
     </header>
 
     <main>
       <section id="hero" class="hero">
         <div class="container">
           <h1>
-            Weak-to-Strong Generalization via
-            <span>Direct On-Policy Distillation</span>
+            <span class="title-line">Weak-to-Strong Generalization via</span>
+            <span class="title-line title-accent">Direct On-Policy Distillation</span>
           </h1>
-          <p class="tagline">
-            把小模型 RL 学到的“改进方向”迁移给更强的学生模型，<br />
-            而不是让学生去模仿一个更弱的教师。
-          </p>
           <p class="tagline english">
-            Direct-OPD transfers the policy shift learned by a small RL teacher, not the teacher's endpoint distribution.
+            Direct-OPD 让强学生模型从小 RL 教师中学习：它把 RL 诱导出的 policy shift 作为学生自身 on-policy 状态上的稠密监督，而不是模仿弱教师的最终策略分布。
           </p>
           <p class="authors">
             <span class="author-line">Shiyuan Feng<sup>1,2,4,*</sup>, Huan-ang Gao<sup>1,2,3,*,‡</sup>, Haohan Chi<sup>1,2,3,*</sup>, Hanlin Wu<sup>1,2</sup>, Zhilong Zhang<sup>1,2</sup>, Zheng Jiang<sup>3</sup>, Bingxiang He<sup>3</sup></span>
@@ -46,18 +111,18 @@
           </p>
           <div class="affiliations">
             <!-- Previous experimental affiliation layouts are intentionally kept out of display. -->
+            <p class="author-notes"><sup>*</sup>Equal contribution. <sup>‡</sup>Project Lead. <sup>†</sup>Corresponding author.</p>
             <div class="affiliation-list">
               <p><sup>1</sup>SIA-Lab of Tsinghua AIR and ByteDance Seed</p>
               <p><sup>2</sup>Institute for AI Industry Research (AIR), Tsinghua University</p>
               <p><sup>3</sup>Department of Computer Science and Technology, Tsinghua University</p>
               <p><sup>4</sup>Peking University</p>
             </div>
-            <p class="author-notes"><sup>*</sup>Equal contribution. <sup>‡</sup>Project Lead. <sup>†</sup>Corresponding author.</p>
           </div>
           <div class="hero-actions">
-            <a class="button" href="#"><span>[arxiv]</span><em>Coming soon</em></a>
-            <a class="button" href="https://github.com/BytedTsinghua-SIA/Direct-OPD" target="_blank" rel="noreferrer"><span>[github]</span><em>Code</em></a>
-            <a class="button" href="https://huggingface.co/" target="_blank" rel="noreferrer"><span>[hf]</span><em>Models</em></a>
+            <a class="button" href="#" aria-label="Arxiv"><img class="brand-icon" src="https://arxiv.org/favicon.ico" alt="" /><em>Arxiv</em></a>
+            <a class="button" href="https://github.com/BytedTsinghua-SIA/Direct-OPD" target="_blank" rel="noreferrer" aria-label="GitHub code"><img class="brand-icon" src="https://github.githubassets.com/favicons/favicon.svg" alt="" /><em>Code</em></a>
+            <a class="button" href="https://huggingface.co/" target="_blank" rel="noreferrer" aria-label="Hugging Face models"><img class="brand-icon" src="https://huggingface.co/favicon.ico" alt="" /><em>Models</em></a>
           </div>
         </div>
       </section>
@@ -70,6 +135,7 @@
           <p class="lead centered">
             RLVR 已经证明能提升推理模型，但每换到一个更大的模型，都要在稀疏奖励下重新探索。
             Direct-OPD 复用小模型已经完成的这部分探索：先让小模型通过 RL 学到改进方向，再把这个方向施加到强模型自己的 <span class="nowrap">on-policy</span> 状态上。
+            相比之下，vanilla OPD 蒸馏的是 post-RL teacher 的最终分布，可能把更强的学生拉回弱教师附近，而不是只迁移 RL 诱导出的 reward direction。
           </p>
         </div>
       </section>
@@ -80,45 +146,53 @@
 
           <div class="method-focus">
             <article>
-              <h3>问题不在蒸馏，而在蒸馏了什么</h3>
+              <h3>小教师上的 policy-as-reward</h3>
               <p>
-                标准 OPD 让学生在自己访问到的状态上贴近教师分布。当教师强于学生时，这个目标很自然；
-                但在 weak-to-strong 里，教师虽然经过 RL，仍然是小模型。它的最终分布同时带着两类信息：
-              </p>
-              <ul class="clean-list">
-                <li>RL 学到的有用推理偏好；</li>
-                <li>小模型本身的能力上限。</li>
-              </ul>
-              <p>
-                在 R1-Distill-7B 上，学生起点已经高于 JustRL-1.5B；继续做 standard OPD 后，曲线没有继续上升，
-                而是回落到教师附近。JustRL-1.5B 的 RL 增益是有用的，但直接模仿 post-RL teacher 的分布会把这部分增益和小模型的能力边界一起传给学生。
-              </p>
-            </article>
-
-            <article>
-              <h3>Direct-OPD 只取教师 RL 前后的变化</h3>
-              <p>
-                Direct-OPD 使用一对教师模型：RL 前的参考模型 $\pi_{T_{\mathrm{ref}}}$，以及 RL 后的教师模型 $\pi_T$。
-                学生不需要贴近 $\pi_T$；训练信号来自 RL 前后分布的差异。
+                把 KL-regularized RL 的恒等式用在小教师上。如果 teacher 从 $\pi_{\mathrm{ref,teacher}}$ 出发，用外部奖励 $R_{\mathrm{teacher}}$ 和 KL 系数 $\beta_T$ 训练，
+                最优策略满足 $\pi^*_{\mathrm{teacher}}(y\mid x)\propto\pi_{\mathrm{ref,teacher}}(y\mid x)\exp(R_{\mathrm{teacher}}(x,y)/\beta_T)$。
+                把这个式子反解，就得到 policy-as-reward 的恒等式：
               </p>
               <div class="equation-block">
-                $$\Delta_T(y \mid x)=\log \pi_T(y \mid x)-\log \pi_{T_{\mathrm{ref}}}(y \mid x)$$
+                $$\log\frac{\pi^*_{\mathrm{teacher}}(y\mid x)}
+                {\pi_{\mathrm{ref,teacher}}(y\mid x)}
+                =\frac{1}{\beta_T}R_{\mathrm{teacher}}(x,y)-\log Z_T(x).$$
               </div>
               <p>
-                某个 token 在 RL 后概率升高，表示它更符合小模型学到的改进方向；概率降低，则表示这条方向在压低它。
-                这个 log-ratio 可以直接作为稠密的 token-level implicit reward。
+                其中 $\log Z_T(x)$ 对同一个 prompt 下的所有 response 都是常数，所以 teacher/reference log-ratio 可以恢复 teacher 的 RL reward，只差一个正比例缩放和 prompt-level 常数。
               </p>
             </article>
 
             <article>
-              <h3>学生仍然走自己的路</h3>
+              <h3>教师 checkpoint pair 暴露这个 reward</h3>
               <p>
-                训练时，学生模型自己采样 rollout。对每个访问到的前缀，Direct-OPD 只看学生当前最可能考虑的 top-k token，
-                然后用教师与参考模型的 log-ratio 给这些候选 token 打分。
+                实际上，post-RL checkpoint $\pi_{\mathrm{teacher}}$ 就是这个 RL 过程得到的 teacher。把它和 pre-RL checkpoint $\pi_{\mathrm{ref,teacher}}$ 相比，
+                就能暴露外部 RL supervision 写进 teacher 策略里的 reward-like signal：
               </p>
+              <div class="equation-block">
+                $$\Delta_T(y\mid x):=
+                \log\frac{\pi_{\mathrm{teacher}}(y\mid x)}
+                {\pi_{\mathrm{ref,teacher}}(y\mid x)}
+                =\frac{1}{\beta_T}R_{\mathrm{teacher}}(x,y)-\log Z_T(x).$$
+              </div>
               <p>
-                信号始终落在学生真实访问到的状态上，不需要教师生成整条轨迹；监督也落到 token 级别，
-                不再只依赖最终答案对错带来的稀疏奖励。
+                这才是 Direct-OPD 迁移的对象：teacher-derived implicit reward，而不是 teacher policy $\pi_{\mathrm{teacher}}$ 本身。
+              </p>
+            </article>
+
+            <article>
+              <h3>Direct-OPD 把它变换成学生监督</h3>
+              <p>
+                由于语言模型策略可以按 prefix 分解，sequence-level shift 也能分解成 token-level reward：
+              </p>
+              <div class="equation-block">
+                $$R_{\mathrm{student},t}(v\mid s_t)\leftarrow
+                \Delta_{T,t}(v\mid s_t)=
+                \log\frac{\pi_{\mathrm{teacher}}(v\mid s_t)}
+                {\pi_{\mathrm{ref,teacher}}(v\mid s_t)}.$$
+              </div>
+              <p>
+                训练 Direct-OPD 时，学生自己采样 rollout，在每个访问到的 prefix 上保留自己真正会考虑的 top-k actions，
+                再用 $R_{\mathrm{student},t}$ 给这些 actions 打分。因此强学生学到的是从小模型 RL 过程中恢复出的隐式稠密外部监督，而不是对弱教师的模仿，也不需要在目标模型上重新跑稀疏奖励 RL。
               </p>
             </article>
           </div>
@@ -132,32 +206,106 @@
             Direct-OPD 在不同学生模型上都带来了提升。实验并不要求教师强过学生；被复用的是教师通过 RL 形成的变化方向。
           </p>
 
-          <table class="results-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>AIME 2024</th>
-                <th>AIME 2025</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Qwen3-1.7B</td>
-                <td>48.3 -> 62.4</td>
-                <td>36.8 -> 46.3</td>
-              </tr>
-              <tr>
-                <td>Qwen3-4B</td>
-                <td>72.5 -> 77.6</td>
-                <td>65.6 -> 68.8</td>
-              </tr>
-              <tr>
-                <td>R1-Distill-7B</td>
-                <td>56.7 -> 63.1</td>
-                <td>40.5 -> 48.8</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="results-tables" aria-label="Score summaries for the different students and teacher pairs">
+            <div class="table-panel">
+              <p class="result-table-title">(a) JustRL policy-shift transfer</p>
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>AIME24</th>
+                    <th>AIME25</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Teacher ref</td>
+                    <td>28.5</td>
+                    <td>24.0</td>
+                  </tr>
+                  <tr class="separator">
+                    <td>Teacher RL</td>
+                    <td>51.3</td>
+                    <td>37.5</td>
+                  </tr>
+                  <tr>
+                    <td>Qwen3-1.7B</td>
+                    <td>48.3</td>
+                    <td>36.8</td>
+                  </tr>
+                  <tr class="dopd-row">
+                    <td>+ Direct-OPD</td>
+                    <td><strong>62.4</strong> <span class="gain">+14.1</span></td>
+                    <td><strong>46.3</strong> <span class="gain">+9.5</span></td>
+                  </tr>
+                  <tr>
+                    <td>Qwen3-4B</td>
+                    <td>72.5</td>
+                    <td>65.6</td>
+                  </tr>
+                  <tr class="dopd-row">
+                    <td>+ Direct-OPD</td>
+                    <td><strong>77.6</strong> <span class="gain">+5.1</span></td>
+                    <td><strong>68.8</strong> <span class="gain">+3.2</span></td>
+                  </tr>
+                  <tr>
+                    <td>R1-Distill-7B</td>
+                    <td>56.7</td>
+                    <td>40.5</td>
+                  </tr>
+                  <tr class="dopd-row">
+                    <td>+ Direct-OPD</td>
+                    <td><strong>63.1</strong> <span class="gain">+6.4</span></td>
+                    <td><strong>48.8</strong> <span class="gain">+8.3</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-panel">
+              <p class="result-table-title">(b) QuestA policy-shift transfer</p>
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>AIME24</th>
+                    <th>AIME25</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Teacher ref</td>
+                    <td>61.8</td>
+                    <td>49.5</td>
+                  </tr>
+                  <tr class="separator">
+                    <td>Teacher RL</td>
+                    <td>72.5</td>
+                    <td>62.3</td>
+                  </tr>
+                  <tr>
+                    <td>Qwen3-1.7B</td>
+                    <td>49.1</td>
+                    <td>36.8</td>
+                  </tr>
+                  <tr class="dopd-row">
+                    <td>+ Direct-OPD</td>
+                    <td><strong>59.0</strong> <span class="gain">+9.9</span></td>
+                    <td><strong>43.1</strong> <span class="gain">+6.3</span></td>
+                  </tr>
+                  <tr>
+                    <td>R1-Distill-7B</td>
+                    <td>56.3</td>
+                    <td>39.5</td>
+                  </tr>
+                  <tr class="dopd-row">
+                    <td>+ Direct-OPD</td>
+                    <td><strong>61.2</strong> <span class="gain">+4.9</span></td>
+                    <td><strong>44.0</strong> <span class="gain">+4.5</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           <figure class="paper-figure">
             <img src="./assets/justrl-transfer-grid.png" alt="JustRL policy-shift transfer results" />
@@ -218,9 +366,9 @@
     <footer>
       <div class="container footer-inner">
         <span>Direct-OPD</span>
-        <a href="#">[arxiv] Coming soon</a>
-        <a href="https://github.com/BytedTsinghua-SIA/Direct-OPD" target="_blank" rel="noreferrer">[github] Code</a>
-        <a href="https://huggingface.co/" target="_blank" rel="noreferrer">[hf] Models</a>
+        <a href="#">Arxiv</a>
+        <a href="https://github.com/BytedTsinghua-SIA/Direct-OPD" target="_blank" rel="noreferrer">Code</a>
+        <a href="https://huggingface.co/" target="_blank" rel="noreferrer">Models</a>
         <a href="#hero">Back to top</a>
       </div>
     </footer>
