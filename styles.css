@@ -184,16 +184,28 @@ p {
 }
 
 .affiliations {
-  max-width: 760px;
-  margin: 0.65rem auto 0;
+  max-width: 900px;
+  margin: 0.8rem auto 0;
   color: var(--dim);
   font-size: 0.86rem;
   line-height: 1.45;
 }
 
-.affiliations p {
-  margin: 0.12rem 0;
+.affiliation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.22rem 1.2rem;
+  align-items: start;
+}
+
+.affiliation-grid p,
+.author-notes {
+  margin: 0;
   color: inherit;
+}
+
+.author-notes {
+  margin-top: 0.5rem;
 }
 
 .hero-actions {
@@ -252,6 +264,7 @@ p {
   margin: 1.7rem 0;
   border: 1px solid var(--border);
   border-radius: 8px;
+  padding: 1rem;
   background: var(--card);
   box-shadow: var(--shadow);
 }
@@ -266,7 +279,7 @@ p {
 }
 
 .paper-figure figcaption {
-  padding: 0.9rem 1rem 1rem;
+  padding: 0.85rem 0 0;
   color: var(--muted);
   font-size: 0.95rem;
 }
@@ -468,6 +481,7 @@ footer {
 
   .two-column,
   .method-focus,
+  .affiliation-grid,
   .contrib-grid {
     grid-template-columns: 1fr;
   }
