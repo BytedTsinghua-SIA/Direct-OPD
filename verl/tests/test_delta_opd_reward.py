@@ -59,28 +59,6 @@ def test_direct_opd_reward_masks_invalid_candidates_before_weighting():
     assert not rm_scores.requires_grad
 
 
-def test_direct_opd_answer_protect_zeroes_negative_tail_only(monkeypatch):
-    monkeypatch.setenv("DELTA_ANSWER_PROTECT_MODE", "zero_negative_last256")
-    monkeypatch.setenv("DELTA_ANSWER_PROTECT_LAST_TOKENS", "2")
-    monkeypatch.setenv("DELTA_ANSWER_PROTECT_NEGATIVE_ONLY", "1")
-
-    student_logp = torch.log(torch.tensor([[[0.5, 0.5], [0.5, 0.5], [0.5, 0.5]]]))
-    teacher_rl_logp = torch.tensor([[[0.0, 0.0], [0.0, 2.0], [3.0, 0.0]]])
-    teacher_ref_logp = torch.tensor([[[1.0, 0.0], [1.0, 1.0], [1.0, 2.0]]])
-
-    rm_scores, delta = _compute_delta_opd_rm_scores(
-        student_logp=student_logp,
-        teacher_rl_logp=teacher_rl_logp,
-        teacher_ref_logp=teacher_ref_logp,
-    )
-
-    expected_delta = torch.tensor([[[-1.0, 0.0], [0.0, 1.0], [2.0, 0.0]]])
-    expected_rm_scores = torch.softmax(student_logp, dim=-1) * expected_delta
-
-    assert torch.allclose(delta, expected_delta)
-    assert torch.allclose(rm_scores, expected_rm_scores)
-
-
 def test_direct_opd_reward_rejects_mismatched_shapes():
     student_logp = torch.zeros(2, 3, 4)
     teacher_rl_logp = torch.zeros(2, 3, 4)

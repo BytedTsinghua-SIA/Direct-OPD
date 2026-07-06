@@ -45,39 +45,6 @@ logger = logging.getLogger(__file__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
 
 
-def _env_flag(name: str, default: bool = False) -> bool:
-    value = os.environ.get(name)
-    if value is None:
-        return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _apply_delta_answer_protect(delta: torch.Tensor) -> torch.Tensor:
-    """Apply conservative answer-tail protection for Direct-OPD deltas.
-
-    The current online batches do not carry answer span offsets, so the first
-    supported mode protects the response tail as a fallback answer region.
-    """
-    mode = os.environ.get("DELTA_ANSWER_PROTECT_MODE", "").strip().lower()
-    if mode in {"", "none", "off", "0"}:
-        return delta
-    if mode != "zero_negative_last256":
-        raise ValueError(f"Unsupported DELTA_ANSWER_PROTECT_MODE={mode!r}")
-
-    last_tokens = int(os.environ.get("DELTA_ANSWER_PROTECT_LAST_TOKENS", "256"))
-    if last_tokens <= 0:
-        return delta
-    negative_only = _env_flag("DELTA_ANSWER_PROTECT_NEGATIVE_ONLY", True)
-    start = max(0, delta.shape[1] - last_tokens)
-    protected = delta.clone()
-    tail = protected[:, start:, :]
-    if negative_only:
-        protected[:, start:, :] = torch.where(tail < 0, torch.zeros_like(tail), tail)
-    else:
-        protected[:, start:, :] = torch.zeros_like(tail)
-    return protected
-
-
 def _compute_delta_opd_rm_scores(
     student_logp: torch.Tensor,
     teacher_rl_logp: torch.Tensor,
@@ -113,7 +80,6 @@ def _compute_delta_opd_rm_scores(
     delta = teacher_rl_logp.detach() - teacher_ref_logp.detach()
     if valid_mask is not None:
         delta = delta.masked_fill(~valid_mask, 0.0)
-    delta = _apply_delta_answer_protect(delta)
 
     student_weights = torch.softmax(masked_student_logp, dim=-1)
     student_weights = torch.nan_to_num(student_weights, nan=0.0, posinf=0.0, neginf=0.0)
