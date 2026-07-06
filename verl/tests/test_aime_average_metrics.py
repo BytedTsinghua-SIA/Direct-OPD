@@ -31,11 +31,11 @@ def test_add_aime24_aime25_average_metric_logs_ave16():
     assert metrics["val-core/aime24_aime25/acc/ave@16"] == 0.375
 
 
-def test_add_aime24_aime25_average_metric_accepts_once_suffixes():
+def test_add_aime24_aime25_average_metric_accepts_case_variants():
     add_average = _load_helper()
     metrics = {
-        "val-core/aime24_once/acc/mean@16": 0.75,
-        "val-core/aime25_once/acc/mean@16": 0.25,
+        "val-core/AIME24/acc/mean@16": 0.75,
+        "val-core/AIME25/acc/mean@16": 0.25,
     }
 
     add_average(metrics)
@@ -46,9 +46,9 @@ def test_add_aime24_aime25_average_metric_accepts_once_suffixes():
 def test_add_aime24_aime25_average_metric_logs_three_way_ave32():
     add_average = _load_helper()
     metrics = {
-        "val-core/aime24_once/acc/mean@32": 0.25,
-        "val-core/aime25_once/acc/mean@32": 0.5,
-        "val-core/HMMT_Feb_2025/acc/mean@32": 1.0,
+        "val-core/aime24/acc/mean@32": 0.25,
+        "val-core/aime25/acc/mean@32": 0.5,
+        "val-core/hmmt_feb/acc/mean@32": 1.0,
     }
 
     add_average(metrics)

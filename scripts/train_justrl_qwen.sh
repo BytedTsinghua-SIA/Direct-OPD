@@ -15,20 +15,18 @@ export HYDRA_FULL_ERROR=${HYDRA_FULL_ERROR:-1}
 export PYTHON_BIN=${PYTHON_BIN:-/usr/bin/python3.12}
 export RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES=${RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES:-1}
 
-DEFAULT_USER_ROOT=${DEFAULT_USER_ROOT:-/GenSIvePFS/users/hhchi}
-MODEL_ROOT=${MODEL_ROOT:-"${DEFAULT_USER_ROOT}/models_local"}
-DATA_ROOT=${DATA_ROOT:-"${DEFAULT_USER_ROOT}/benchmarks/data"}
-OUTPUT_ROOT=${OUTPUT_ROOT:-/sia-thu/chihaohan/direct-opd-repro/checkpoints}
-LOG_ROOT=${LOG_ROOT:-/sia-thu/chihaohan/direct-opd-repro/logs}
-REPORT_ROOT=${REPORT_ROOT:-/sia-thu/chihaohan/direct-opd-repro/reports}
+MODEL_ROOT=${MODEL_ROOT:-models}
+DATA_ROOT=${DATA_ROOT:-datasets}
+OUTPUT_ROOT=${OUTPUT_ROOT:-checkpoints}
+LOG_ROOT=${LOG_ROOT:-logs}
 
 PROJECT_NAME=${PROJECT_NAME:-Direct-OPD}
-EXPERIMENT_NAME=${EXPERIMENT_NAME:-direct_opd_questa_qwen3_1p7b_adaptive_kl_len2k}
-ACTOR_MODEL_PATH=${ACTOR_MODEL_PATH:-"${MODEL_ROOT}/Qwen/Qwen3-1.7B"}
-REWARD_MODEL_PATH=${REWARD_MODEL_PATH:-"${MODEL_ROOT}/foreverlasting1202/QuestA-Nemotron-1.5B"}
-TEACHER_REF_MODEL_PATH=${TEACHER_REF_MODEL_PATH:-"${MODEL_ROOT}/nvidia/OpenMath-Nemotron-1.5B.ms"}
-TRAIN_DATASET=${TRAIN_DATASET:-"${DATA_ROOT}/BytedTsinghua-SIA/DAPO-Math-17k/data/dapo-math-17k.parquet"}
-TEST_DATASET=${TEST_DATASET:-"['${REPO_ROOT}/datasets/eval/aime24_once.parquet','${REPO_ROOT}/datasets/eval/aime25_once.parquet','${REPO_ROOT}/datasets/eval/hmtt_feb.parquet']"}
+EXPERIMENT_NAME=${EXPERIMENT_NAME:-justrl_qwen3_1p7b}
+ACTOR_MODEL_PATH=${ACTOR_MODEL_PATH:-"${MODEL_ROOT}/Qwen3-1.7B"}
+REWARD_MODEL_PATH=${REWARD_MODEL_PATH:-"${MODEL_ROOT}/JustRL-DeepSeek-1.5B"}
+TEACHER_REF_MODEL_PATH=${TEACHER_REF_MODEL_PATH:-"${MODEL_ROOT}/DeepSeek-R1-Distill-Qwen-1.5B"}
+TRAIN_DATASET=${TRAIN_DATASET:-"${DATA_ROOT}/train/dapo_math_17k.parquet"}
+TEST_DATASET=${TEST_DATASET:-"['${REPO_ROOT}/datasets/eval/aime24.parquet','${REPO_ROOT}/datasets/eval/aime25.parquet','${REPO_ROOT}/datasets/eval/hmmt_feb.parquet']"}
 CHECKPOINT_DIR=${CHECKPOINT_DIR:-"${OUTPUT_ROOT}/${EXPERIMENT_NAME}"}
 OUTPUTS_DIR=${OUTPUTS_DIR:-"${CHECKPOINT_DIR}/outputs"}
 TRAIN_LOG=${TRAIN_LOG:-"${LOG_ROOT}/${EXPERIMENT_NAME}.log"}
@@ -65,7 +63,7 @@ ENABLE_CHUNKED_PREFILL=${ENABLE_CHUNKED_PREFILL:-True}
 ENABLE_PREFIX_CACHING=${ENABLE_PREFIX_CACHING:-True}
 GPUS_PER_NODE=${GPUS_PER_NODE:-8}
 NUM_NODES=${NUM_NODES:-1}
-LOGGER=${LOGGER:-"['console','wandb']"}
+LOGGER=${LOGGER:-"['console']"}
 VAL_BEFORE_TRAIN=${VAL_BEFORE_TRAIN:-True}
 LOG_VAL_GENERATIONS=${LOG_VAL_GENERATIONS:-2}
 VAL_N=${VAL_N:-32}
@@ -73,63 +71,14 @@ SAVE_FREQ=${SAVE_FREQ:-20}
 TEST_FREQ=${TEST_FREQ:-20}
 TOTAL_EPOCHS=${TOTAL_EPOCHS:-2}
 TOTAL_TRAINING_STEPS=${TOTAL_TRAINING_STEPS:-300}
-IS_PLOT=${IS_PLOT:-False}
+IS_PLOT=${IS_PLOT:-True}
 MANAGE_RAY=${MANAGE_RAY:-True}
-RUN_PREFLIGHT=${RUN_PREFLIGHT:-True}
-ALLOW_TOKENIZER_MISMATCH=${ALLOW_TOKENIZER_MISMATCH:-True}
-PREFLIGHT_ONLY=${PREFLIGHT_ONLY:-False}
 
 PPO_MAX_TOKEN_LEN_PER_GPU=${PPO_MAX_TOKEN_LEN_PER_GPU:-$(( MAX_MODEL_LEN > 32768 ? MAX_MODEL_LEN : 32768 ))}
 ROLLOUT_LOG_PROB_MAX_TOKEN_LEN_PER_GPU=${ROLLOUT_LOG_PROB_MAX_TOKEN_LEN_PER_GPU:-16384}
 REF_LOG_PROB_MAX_TOKEN_LEN_PER_GPU=${REF_LOG_PROB_MAX_TOKEN_LEN_PER_GPU:-16384}
 ROLLOUT_MAX_NUM_BATCHED_TOKENS=${ROLLOUT_MAX_NUM_BATCHED_TOKENS:-${PPO_MAX_TOKEN_LEN_PER_GPU}}
-mkdir -p "${LOG_ROOT}" "${CHECKPOINT_DIR}" "${OUTPUTS_DIR}/validation_log" "${REPORT_ROOT}"
-
-if [ "${REWARD_MODEL_PATH}" = "${TEACHER_REF_MODEL_PATH}" ]; then
-  echo "ERROR: REWARD_MODEL_PATH and TEACHER_REF_MODEL_PATH are identical; this would make delta_opd zero." >&2
-  exit 1
-fi
-
-if [ ! -f "${TEACHER_REF_MODEL_PATH}/model.safetensors" ]; then
-  echo "ERROR: expected correct OpenMath ModelScope layout at ${TEACHER_REF_MODEL_PATH}/model.safetensors." >&2
-  echo "Do not use the stale ${MODEL_ROOT}/nvidia/OpenMath-Nemotron-1.5B directory for QuestA Direct-OPD." >&2
-  exit 1
-fi
-
-if [ "${RUN_PREFLIGHT}" = "True" ]; then
-  PREFLIGHT_EXTRA_ARGS=()
-  if [ "${ALLOW_TOKENIZER_MISMATCH}" = "True" ]; then
-    PREFLIGHT_EXTRA_ARGS+=(--allow-tokenizer-mismatch)
-  fi
-  IFS= read -r -d '' EVAL_JSON <<EOF || true
-${TEST_DATASET}
-EOF
-  "${PYTHON_BIN}" scripts/preflight_direct_opd.py \
-    --profile "${EXPERIMENT_NAME}" \
-    --actor-model "${ACTOR_MODEL_PATH}" \
-    --reward-model "${REWARD_MODEL_PATH}" \
-    --teacher-ref-model "${TEACHER_REF_MODEL_PATH}" \
-    --train-dataset "${TRAIN_DATASET}" \
-    --report-root "${REPORT_ROOT}" \
-    "${PREFLIGHT_EXTRA_ARGS[@]}" \
-    $(python3 - <<'PY' "${EVAL_JSON}"
-import ast
-import shlex
-import sys
-
-raw = sys.argv[1]
-paths = ast.literal_eval(raw)
-if isinstance(paths, str):
-    paths = [paths]
-print(" ".join("--eval-dataset " + shlex.quote(path) for path in paths))
-PY
-    )
-fi
-
-if [ "${PREFLIGHT_ONLY}" = "True" ]; then
-  echo "PREFLIGHT_ONLY=True; exiting before Ray/training launch."
-  exit 0
-fi
+mkdir -p "${LOG_ROOT}" "${CHECKPOINT_DIR}" "${OUTPUTS_DIR}/validation_log"
 
 if [ "${MANAGE_RAY}" = "True" ]; then
   ray stop --force || true
