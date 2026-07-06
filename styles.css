@@ -83,6 +83,20 @@ img {
   color: var(--muted);
 }
 
+.language-link {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.28rem 0.62rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.language-link:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+
 section {
   padding: 3.2rem 0;
 }
