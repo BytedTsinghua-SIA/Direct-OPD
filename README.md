@@ -1,6 +1,10 @@
 <h1 align="center">Weak-to-Strong Generalization via Direct On-Policy Distillation</h1>
 
 <p align="center">
+  <b>Transfer RL-discovered policy shifts from weak teachers to stronger students.</b>
+</p>
+
+<p align="center">
   Shiyuan Feng* · Huan-ang Gao*‡ · Haohan Chi* · Hanlin Wu · Zhilong Zhang · Zheng Jiang · Bingxiang He · Wei-Ying Ma · Ya-Qin Zhang · Hao Zhou†
 </p>
 
@@ -17,34 +21,34 @@
 
 <p align="center">
   <a href="https://bytedtsinghua-sia.github.io/Direct-OPD/index.html">
-    <img src="https://img.shields.io/badge/Project-Page-0A8AA0?style=flat-square&logo=googlechrome&logoColor=white" alt="Project Page">
+    <img src="https://img.shields.io/badge/Project-Page-0A8AA0?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Project Page">
   </a>
   <a href="#">
-    <img src="https://img.shields.io/badge/arXiv-coming%20soon-B31B1B?style=flat-square&logo=arxiv&logoColor=white" alt="arXiv">
+    <img src="https://img.shields.io/badge/arXiv-coming%20soon-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white" alt="arXiv">
   </a>
   <a href="https://huggingface.co/BytedTsinghua-SIA">
-    <img src="https://img.shields.io/badge/Hugging%20Face-Models-FFD21E?style=flat-square&logo=huggingface&logoColor=black" alt="Hugging Face">
+    <img src="https://img.shields.io/badge/Hugging%20Face-Models-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face">
   </a>
 </p>
 
-Direct-OPD transfers the policy shift learned by a small RL teacher to a stronger student, instead of asking the student to imitate the teacher's final distribution. The key signal is the teacher's change before and after RL:
+Direct-OPD transfers the policy shift learned by a small RL teacher to a stronger student, instead of asking the student to imitate the teacher's final distribution. Given a pre-RL teacher reference $\pi_{T_{\mathrm{ref}}}$ and a post-RL teacher $\pi_T$, Direct-OPD reads the teacher's RL-induced change as a dense token-level implicit reward:
 
 $$
 \Delta_T(y \mid x)=\log \pi_T(y \mid x)-\log \pi_{T_{\mathrm{ref}}}(y \mid x)
 $$
 
-This log-ratio acts as a dense token-level implicit reward on states visited by the student. The repository contains the training code used for the JustRL-to-Qwen Direct-OPD experiment, built on a patched `verl` codebase.
+The student remains on-policy: rollouts come from the current student, while the teacher/reference log-ratio scores the candidate tokens the student actually considers. This repository contains the training code used for the JustRL-to-Qwen Direct-OPD experiment, built on a patched `verl` codebase.
 
 ## Highlights
 
-- Transfers RL-discovered directions from a small teacher pair to stronger student models.
-- Keeps the student on-policy: rollouts come from the current student, while teacher/reference log-ratios score candidate tokens.
-- Avoids directly matching the post-RL teacher distribution, which can import the weak teacher's capacity ceiling.
-- Includes validation data for AIME 2024, AIME 2025, and HMMT February.
+- Weak RL teachers can improve stronger students by transferring the direction learned during RL.
+- Direct-OPD avoids matching the post-RL teacher endpoint, which can import the weak teacher's capacity ceiling.
+- Small-model RL followed by Direct-OPD reduces the need to rediscover credit assignment on larger models.
+- Policy shifts learned by different RL processes can be applied sequentially to the same student.
 
 ## Quick Start
 
-Install the environment and dependencies:
+Install dependencies:
 
 ```bash
 conda create -n direct-opd python=3.12
@@ -56,22 +60,13 @@ pip install math-verify pyarrow transformers
 cd ..
 ```
 
-Prepare model weights and the training parquet, then launch:
+Place or symlink model weights and the training parquet under the default paths described in [docs/setup.md](./docs/setup.md), then launch:
 
 ```bash
 bash scripts/train_justrl_qwen.sh
 ```
 
-The default script expects:
-
-```text
-models/Qwen3-1.7B/
-models/JustRL-DeepSeek-1.5B/
-models/DeepSeek-R1-Distill-Qwen-1.5B/
-datasets/train/dapo_math_17k.parquet
-```
-
-For custom paths, logging, and launch options, see [docs/setup.md](./docs/setup.md).
+For custom model paths, logging, and launch options, see [docs/setup.md](./docs/setup.md).
 
 ## Repository Layout
 
