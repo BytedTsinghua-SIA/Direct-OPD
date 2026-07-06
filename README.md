@@ -19,8 +19,8 @@
   <a href="https://bytedtsinghua-sia.github.io/Direct-OPD/index.html">
     <img src="https://img.shields.io/badge/Project-Page-0A8AA0?style=flat-square&logo=googlechrome&logoColor=white" alt="Project Page">
   </a>
-  <a href="https://bytedtsinghua-sia.github.io/Direct-OPD/assets/w2s-opd.pdf">
-    <img src="https://img.shields.io/badge/Paper-PDF-B31B1B?style=flat-square&logo=adobeacrobatreader&logoColor=white" alt="Paper PDF">
+  <a href="#">
+    <img src="https://img.shields.io/badge/arXiv-coming%20soon-B31B1B?style=flat-square&logo=arxiv&logoColor=white" alt="arXiv">
   </a>
   <a href="https://huggingface.co/BytedTsinghua-SIA">
     <img src="https://img.shields.io/badge/Hugging%20Face-Models-FFD21E?style=flat-square&logo=huggingface&logoColor=black" alt="Hugging Face">
