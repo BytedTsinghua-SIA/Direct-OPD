@@ -189,32 +189,27 @@ p {
 }
 
 .affiliations {
-  max-width: 1120px;
-  margin: 0.95rem auto 0;
+  max-width: 760px;
+  margin: 1.15rem auto 0;
   color: var(--dim);
-  font-size: 0.82rem;
-  line-height: 1.45;
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
-.affiliation-grid {
+.affiliation-list {
   display: grid;
-  grid-template-columns: minmax(560px, 1.15fr) minmax(420px, 0.85fr);
-  gap: 0.28rem 1.8rem;
-  align-items: start;
+  gap: 0.12rem;
+  margin: 0.25rem 0 0.65rem;
 }
 
-.affiliation-grid p,
+.affiliation-list p,
 .author-notes {
   margin: 0;
   color: inherit;
 }
 
-.affiliation-grid p {
-  white-space: nowrap;
-}
-
 .author-notes {
-  margin-top: 0.5rem;
+  margin-top: 0.45rem;
 }
 
 .hero-actions {
@@ -490,17 +485,12 @@ footer {
 
   .two-column,
   .method-focus,
-  .affiliation-grid,
   .contrib-grid {
     grid-template-columns: 1fr;
   }
 
   .hero {
     padding-top: 3.5rem;
-  }
-
-  .affiliation-grid p {
-    white-space: normal;
   }
 
 }
