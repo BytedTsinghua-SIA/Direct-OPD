@@ -5,22 +5,33 @@
 </p>
 
 <p align="center">
-  <a href="https://bytedtsinghua-sia.github.io/Direct-OPD/">Project Page</a> ·
-  <a href="https://bytedtsinghua-sia.github.io/Direct-OPD/assets/w2s-opd.pdf">Paper</a> ·
-  <a href="https://github.com/BytedTsinghua-SIA/Direct-OPD">Code</a> ·
-  <a href="./docs/setup.md">Setup</a> ·
-  <a href="./scripts/train_justrl_qwen.sh">Training Script</a>
+  <sup>1</sup>SIA-Lab of Tsinghua AIR and ByteDance Seed<br>
+  <sup>2</sup>Institute for AI Industry Research (AIR), Tsinghua University<br>
+  <sup>3</sup>Department of Computer Science and Technology, Tsinghua University<br>
+  <sup>4</sup>Peking University
 </p>
 
 <p align="center">
   * Equal contribution · ‡ Project Lead · † Corresponding author
 </p>
 
+<p align="center">
+  <a href="https://bytedtsinghua-sia.github.io/Direct-OPD/index.html">
+    <img src="https://img.shields.io/badge/Project-Page-0A8AA0?style=flat-square&logo=googlechrome&logoColor=white" alt="Project Page">
+  </a>
+  <a href="https://bytedtsinghua-sia.github.io/Direct-OPD/assets/w2s-opd.pdf">
+    <img src="https://img.shields.io/badge/Paper-PDF-B31B1B?style=flat-square&logo=adobeacrobatreader&logoColor=white" alt="Paper PDF">
+  </a>
+  <a href="https://huggingface.co/BytedTsinghua-SIA">
+    <img src="https://img.shields.io/badge/Hugging%20Face-Models-FFD21E?style=flat-square&logo=huggingface&logoColor=black" alt="Hugging Face">
+  </a>
+</p>
+
 Direct-OPD transfers the policy shift learned by a small RL teacher to a stronger student, instead of asking the student to imitate the teacher's final distribution. The key signal is the teacher's change before and after RL:
 
-```text
-Delta_T(y | x) = log pi_T(y | x) - log pi_Tref(y | x)
-```
+$$
+\Delta_T(y \mid x)=\log \pi_T(y \mid x)-\log \pi_{T_{\mathrm{ref}}}(y \mid x)
+$$
 
 This log-ratio acts as a dense token-level implicit reward on states visited by the student. The repository contains the training code used for the JustRL-to-Qwen Direct-OPD experiment, built on a patched `verl` codebase.
 
