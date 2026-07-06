@@ -81,7 +81,7 @@
         svg: { fontCache: "global" }
       };
     </script>
-    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js';"></script>
   </head>
   <body>
     <header class="topbar">
@@ -149,8 +149,13 @@
               <h3>Policy-as-reward for the small teacher</h3>
               <p>
                 Apply the KL-regularized RL identity to the small teacher. If the teacher is trained from $\pi_{\mathrm{ref,teacher}}$ with external reward $R_{\mathrm{teacher}}$
-                and KL coefficient $\beta_T$, its optimum satisfies
-                $\pi^*_{\mathrm{teacher}}(y\mid x)\propto\pi_{\mathrm{ref,teacher}}(y\mid x)\exp(R_{\mathrm{teacher}}(x,y)/\beta_T)$.
+                and KL coefficient $\beta_T$, its optimum satisfies:
+              </p>
+              <div class="equation-block">
+                $$\pi^*_{\mathrm{teacher}}(y\mid x)\propto
+                \pi_{\mathrm{ref,teacher}}(y\mid x)\exp(R_{\mathrm{teacher}}(x,y)/\beta_T).$$
+              </div>
+              <p>
                 Rearranging gives:
               </p>
               <div class="equation-block">

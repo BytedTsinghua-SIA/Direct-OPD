@@ -21,6 +21,7 @@
   --display: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --body: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --hero-mobile-scale: 1;
 }
 
 html {
@@ -229,6 +230,8 @@ p {
 .author-notes {
   margin: 0;
   color: inherit;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .author-notes {
@@ -353,6 +356,7 @@ p {
 }
 
 .method-focus article {
+  min-width: 0;
   padding: 1rem 0 1.15rem;
   border-top: 1px solid var(--border);
 }
@@ -368,13 +372,21 @@ p {
 
 .equation-block {
   overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
   margin: 0.55rem 0 0.7rem;
   padding: 0.15rem 0;
   color: var(--text);
   text-align: center;
+  -webkit-overflow-scrolling: touch;
 }
 
 .equation-block mjx-container {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
   margin: 0 !important;
   font-size: 92% !important;
 }
@@ -568,21 +580,31 @@ footer {
   }
 
   .paper-figure img {
-    min-width: 620px;
+    min-width: 0;
   }
 
   .paper-figure.large img {
-    min-width: 680px;
+    min-width: 0;
   }
 }
 
 @media (max-width: 560px) {
   .container {
-    width: min(100% - 28px, 880px);
+    width: auto;
+    max-width: none;
+    margin-right: 14px;
+    margin-left: 14px;
   }
 
   .hero .container {
-    width: min(100% - 16px, 880px);
+    position: relative;
+    left: 50%;
+    width: 1040px;
+    max-width: none;
+    margin-left: -520px;
+    margin-right: 0;
+    transform: scale(var(--hero-mobile-scale));
+    transform-origin: top center;
   }
 
   .topbar {
@@ -595,13 +617,16 @@ footer {
   }
 
   .hero {
-    padding: 2.6rem 0 2rem;
+    height: calc(514px * var(--hero-mobile-scale) + 28px);
+    min-height: 0;
+    overflow: hidden;
+    padding: 14px 0;
   }
 
   h1 {
-    margin-bottom: 0.8rem;
-    font-size: clamp(1.08rem, 4.7vw, 1.2rem);
-    line-height: 1.22;
+    margin-bottom: 1.05rem;
+    font-size: 3rem;
+    line-height: 1.16;
   }
 
   .title-line {
@@ -619,8 +644,8 @@ footer {
 
   .tagline,
   .tagline.english {
-    font-size: 0.94rem;
-    line-height: 1.58;
+    font-size: 1.28rem;
+    line-height: 1.6;
   }
 
   p,
@@ -631,24 +656,32 @@ footer {
   }
 
   .authors {
-    margin-top: 1.25rem;
-    font-size: 0.82rem;
-    line-height: 1.6;
-  }
-
-  .author-line {
-    white-space: normal;
-  }
-
-  .affiliations {
-    margin-top: 1.15rem;
-    font-size: 0.68rem;
+    overflow: visible;
+    margin-top: 1.8rem;
+    padding-bottom: 0;
+    font-size: 0.9rem;
     line-height: 1.55;
   }
 
+  .author-line {
+    white-space: nowrap;
+  }
+
+  .affiliations {
+    overflow: visible;
+    margin-top: 1.45rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
   .affiliation-list {
-    gap: 0.18rem;
-    margin-top: 0.75rem;
+    gap: 0.12rem;
+    margin-top: 1rem;
+  }
+
+  .author-notes,
+  .affiliation-list p {
+    white-space: nowrap;
   }
 
   .tagline br {
@@ -664,9 +697,11 @@ footer {
   }
 
   .paper-figure {
-    margin: 1.2rem 0;
+    width: calc(100vw - 20px);
+    max-width: none;
+    margin: 1.2rem calc(50% - 50vw + 10px);
     border-radius: 7px;
-    padding: 0.7rem;
+    padding: 0.55rem;
   }
 
   .paper-figure figcaption {
@@ -680,15 +715,24 @@ footer {
   }
 
   .hero-actions {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 0.55rem;
-    margin-top: 1.35rem;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1.7rem;
   }
 
   .button {
-    width: 100%;
-    min-height: 44px;
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: 42px;
+    padding: 0 1.05rem;
+    gap: 0.42rem;
+    font-size: 1rem;
+  }
+
+  .brand-icon {
+    width: 1.35rem;
+    height: 1.35rem;
   }
 
   .results-tables {
@@ -716,7 +760,11 @@ footer {
   }
 
   .equation-block {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
+  }
+
+  .equation-block mjx-container {
+    font-size: 68% !important;
   }
 
   .takeaway {

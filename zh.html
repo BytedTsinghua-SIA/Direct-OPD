@@ -81,7 +81,7 @@
         svg: { fontCache: "global" }
       };
     </script>
-    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js';"></script>
   </head>
   <body>
     <header class="topbar">
@@ -149,7 +149,13 @@
               <h3>小教师上的 policy-as-reward</h3>
               <p>
                 把 KL-regularized RL 的恒等式用在小教师上。如果 teacher 从 $\pi_{\mathrm{ref,teacher}}$ 出发，用外部奖励 $R_{\mathrm{teacher}}$ 和 KL 系数 $\beta_T$ 训练，
-                最优策略满足 $\pi^*_{\mathrm{teacher}}(y\mid x)\propto\pi_{\mathrm{ref,teacher}}(y\mid x)\exp(R_{\mathrm{teacher}}(x,y)/\beta_T)$。
+                最优策略满足：
+              </p>
+              <div class="equation-block">
+                $$\pi^*_{\mathrm{teacher}}(y\mid x)\propto
+                \pi_{\mathrm{ref,teacher}}(y\mid x)\exp(R_{\mathrm{teacher}}(x,y)/\beta_T).$$
+              </div>
+              <p>
                 把这个式子反解，就得到 policy-as-reward 的恒等式：
               </p>
               <div class="equation-block">
