@@ -23,8 +23,8 @@
   <a href="https://bytedtsinghua-sia.github.io/Direct-OPD/index.html">
     <img src="https://img.shields.io/badge/Project-Page-0A8AA0?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Project Page">
   </a>
-  <a href="#">
-    <img src="https://img.shields.io/badge/arXiv-coming%20soon-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white" alt="arXiv">
+  <a href="https://arxiv.org/abs/2607.05394">
+    <img src="https://img.shields.io/badge/arXiv-2607.05394-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white" alt="arXiv">
   </a>
   <a href="https://huggingface.co/BytedTsinghua-SIA">
     <img src="https://img.shields.io/badge/Hugging%20Face-Models-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face">
