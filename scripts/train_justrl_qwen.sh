@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
-set -x
+
+if [ "${DEBUG:-0}" = "1" ]; then
+  set -x
+fi
 
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "${REPO_ROOT}"
