@@ -14,6 +14,11 @@ export TOKENIZERS_PARALLELISM=${TOKENIZERS_PARALLELISM:-true}
 export HYDRA_FULL_ERROR=${HYDRA_FULL_ERROR:-1}
 export PYTHON_BIN=${PYTHON_BIN:-/usr/bin/python3.12}
 export RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES=${RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES:-1}
+PYTHON_BIN_DIR=$(cd "$(dirname "${PYTHON_BIN}")" && pwd)
+RAY_BIN=${RAY_BIN:-"${PYTHON_BIN_DIR}/ray"}
+if [ ! -x "${RAY_BIN}" ]; then
+  RAY_BIN=ray
+fi
 
 MODEL_ROOT=${MODEL_ROOT:-models}
 DATA_ROOT=${DATA_ROOT:-datasets}
@@ -25,7 +30,7 @@ EXPERIMENT_NAME=${EXPERIMENT_NAME:-justrl_qwen3_1p7b}
 ACTOR_MODEL_PATH=${ACTOR_MODEL_PATH:-"${MODEL_ROOT}/Qwen3-1.7B"}
 REWARD_MODEL_PATH=${REWARD_MODEL_PATH:-"${MODEL_ROOT}/JustRL-DeepSeek-1.5B"}
 TEACHER_REF_MODEL_PATH=${TEACHER_REF_MODEL_PATH:-"${MODEL_ROOT}/DeepSeek-R1-Distill-Qwen-1.5B"}
-TRAIN_DATASET=${TRAIN_DATASET:-"${DATA_ROOT}/train/dapo_math_17k.parquet"}
+TRAIN_DATASET=${TRAIN_DATASET:-"${DATA_ROOT}/train/skywork-or1-math-dapo-original.parquet"}
 TEST_DATASET=${TEST_DATASET:-"['${REPO_ROOT}/datasets/eval/aime24.parquet','${REPO_ROOT}/datasets/eval/aime25.parquet','${REPO_ROOT}/datasets/eval/hmmt_feb.parquet']"}
 CHECKPOINT_DIR=${CHECKPOINT_DIR:-"${OUTPUT_ROOT}/${EXPERIMENT_NAME}"}
 OUTPUTS_DIR=${OUTPUTS_DIR:-"${CHECKPOINT_DIR}/outputs"}
@@ -55,7 +60,7 @@ MODEL_DTYPE=${MODEL_DTYPE:-fp32}
 LOSS_AGG_MODE=${LOSS_AGG_MODE:-token-mean}
 PARALLEL_SIZE=${PARALLEL_SIZE:-1}
 OPTIM_LR=${OPTIM_LR:-1e-6}
-GPU_MEMORY_UTILIZATION=${GPU_MEMORY_UTILIZATION:-0.7}
+GPU_MEMORY_UTILIZATION=${GPU_MEMORY_UTILIZATION:-0.45}
 FREE_CACHE_ENGINE=${FREE_CACHE_ENGINE:-True}
 ENFORCE_EAGER=${ENFORCE_EAGER:-False}
 MAX_NUM_SEQS=${MAX_NUM_SEQS:-1024}
@@ -73,16 +78,34 @@ TOTAL_EPOCHS=${TOTAL_EPOCHS:-2}
 TOTAL_TRAINING_STEPS=${TOTAL_TRAINING_STEPS:-300}
 IS_PLOT=${IS_PLOT:-True}
 MANAGE_RAY=${MANAGE_RAY:-True}
+VLLM_USE_INDUCTOR=${VLLM_USE_INDUCTOR:-False}
+VLLM_CUDAGRAPH_MODE=${VLLM_CUDAGRAPH_MODE:-FULL_DECODE_ONLY}
+VLLM_CUDAGRAPH_CAPTURE_SIZES=${VLLM_CUDAGRAPH_CAPTURE_SIZES:-}
+VLLM_COMPILE_SIZES=${VLLM_COMPILE_SIZES:-}
 
-PPO_MAX_TOKEN_LEN_PER_GPU=${PPO_MAX_TOKEN_LEN_PER_GPU:-$(( MAX_MODEL_LEN > 32768 ? MAX_MODEL_LEN : 32768 ))}
+PPO_MAX_TOKEN_LEN_PER_GPU=${PPO_MAX_TOKEN_LEN_PER_GPU:-4096}
 ROLLOUT_LOG_PROB_MAX_TOKEN_LEN_PER_GPU=${ROLLOUT_LOG_PROB_MAX_TOKEN_LEN_PER_GPU:-16384}
 REF_LOG_PROB_MAX_TOKEN_LEN_PER_GPU=${REF_LOG_PROB_MAX_TOKEN_LEN_PER_GPU:-16384}
-ROLLOUT_MAX_NUM_BATCHED_TOKENS=${ROLLOUT_MAX_NUM_BATCHED_TOKENS:-${PPO_MAX_TOKEN_LEN_PER_GPU}}
+ROLLOUT_MAX_NUM_BATCHED_TOKENS=${ROLLOUT_MAX_NUM_BATCHED_TOKENS:-${MAX_MODEL_LEN}}
 mkdir -p "${LOG_ROOT}" "${CHECKPOINT_DIR}" "${OUTPUTS_DIR}/validation_log"
 
+VLLM_ENGINE_OVERRIDES=()
+if [ -n "${VLLM_USE_INDUCTOR}" ]; then
+  VLLM_ENGINE_OVERRIDES+=(+actor_rollout_ref.rollout.engine_kwargs.vllm.compilation_config.use_inductor="${VLLM_USE_INDUCTOR}")
+fi
+if [ -n "${VLLM_CUDAGRAPH_MODE}" ]; then
+  VLLM_ENGINE_OVERRIDES+=(+actor_rollout_ref.rollout.engine_kwargs.vllm.compilation_config.cudagraph_mode="${VLLM_CUDAGRAPH_MODE}")
+fi
+if [ -n "${VLLM_CUDAGRAPH_CAPTURE_SIZES}" ]; then
+  VLLM_ENGINE_OVERRIDES+=(+actor_rollout_ref.rollout.engine_kwargs.vllm.compilation_config.cudagraph_capture_sizes="${VLLM_CUDAGRAPH_CAPTURE_SIZES}")
+fi
+if [ -n "${VLLM_COMPILE_SIZES}" ]; then
+  VLLM_ENGINE_OVERRIDES+=(+actor_rollout_ref.rollout.engine_kwargs.vllm.compilation_config.compile_sizes="${VLLM_COMPILE_SIZES}")
+fi
+
 if [ "${MANAGE_RAY}" = "True" ]; then
-  ray stop --force || true
-  ray start --head --disable-usage-stats
+  "${RAY_BIN}" stop --force || true
+  "${RAY_BIN}" start --head --disable-usage-stats
   sleep 5
 fi
 
@@ -184,11 +207,12 @@ set +e
   trainer.total_training_steps="${TOTAL_TRAINING_STEPS}" \
   trainer.default_local_dir="${CHECKPOINT_DIR}" \
   trainer.is_plot="${IS_PLOT}" \
+  "${VLLM_ENGINE_OVERRIDES[@]}" \
   2>&1 | tee -a "${TRAIN_LOG}"
 STATUS=${PIPESTATUS[0]}
 set -e
 
 if [ "${MANAGE_RAY}" = "True" ]; then
-  ray stop --force || true
+  "${RAY_BIN}" stop --force || true
 fi
 exit "${STATUS}"

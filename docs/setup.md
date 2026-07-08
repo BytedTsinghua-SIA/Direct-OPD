@@ -31,7 +31,7 @@ models/
   DeepSeek-R1-Distill-Qwen-1.5B/
 
 datasets/
-  train/dapo_math_17k.parquet
+  train/skywork-or1-math-dapo-original.parquet
   eval/aime24.parquet
   eval/aime25.parquet
   eval/hmmt_feb.parquet
