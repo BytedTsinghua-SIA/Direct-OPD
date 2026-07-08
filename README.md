@@ -26,7 +26,7 @@
   <a href="https://arxiv.org/abs/2607.05394">
     <img src="https://img.shields.io/badge/arXiv-2607.05394-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white" alt="arXiv">
   </a>
-  <a href="https://huggingface.co/BytedTsinghua-SIA">
+  <a href="https://huggingface.co/collections/BytedTsinghua-SIA/direct-opd">
     <img src="https://img.shields.io/badge/Hugging%20Face-Models-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face">
   </a>
 </p>
@@ -37,7 +37,7 @@ $$
 \Delta_T(y \mid x)=\log \pi_T(y \mid x)-\log \pi_{T_{\mathrm{ref}}}(y \mid x)
 $$
 
-The student remains on-policy: rollouts come from the current student, while the teacher/reference log-ratio scores the candidate tokens the student actually considers. This repository contains the training code used for the JustRL-to-Qwen Direct-OPD experiment, built on a patched `verl` codebase.
+The student remains on-policy: rollouts come from the current student, while the teacher/reference log-ratio scores the candidate tokens the student actually considers. This repository contains the training code used for the JustRL-to-Qwen Direct-OPD experiment, built on a patched `verl` codebase. Model releases and related artifacts are collected on [Hugging Face](https://huggingface.co/collections/BytedTsinghua-SIA/direct-opd).
 
 ## Highlights
 
@@ -83,6 +83,10 @@ docs/setup.md         setup, path, and launch notes
 @misc{feng2026directopd,
   title  = {Weak-to-Strong Generalization via Direct On-Policy Distillation},
   author = {Shiyuan Feng and Huan-ang Gao and Haohan Chi and Hanlin Wu and Zhilong Zhang and Zheng Jiang and Bingxiang He and Wei-Ying Ma and Ya-Qin Zhang and Hao Zhou},
-  year   = {2026}
+  year   = {2026},
+  eprint = {2607.05394},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.LG},
+  url    = {https://arxiv.org/abs/2607.05394}
 }
 ```
