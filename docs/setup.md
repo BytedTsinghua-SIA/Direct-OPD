@@ -37,7 +37,39 @@ datasets/
   eval/hmmt_feb.parquet
 ```
 
-The `datasets/eval/` files are included in this repository. The model weights and training parquet should be placed or symlinked locally.
+The evaluation parquets are included. Download the model weights separately and prepare the training parquet as described below.
+
+### Evaluation Data
+
+The included validation parquets were prepared from these public benchmarks:
+
+- `datasets/eval/aime24.parquet`: [Maxwell-Jia/AIME_2024](https://huggingface.co/datasets/Maxwell-Jia/AIME_2024)
+- `datasets/eval/aime25.parquet`: [yentinglin/aime_2025](https://huggingface.co/datasets/yentinglin/aime_2025)
+- `datasets/eval/hmmt_feb.parquet`: [MathArena/hmmt_feb_2025](https://huggingface.co/datasets/MathArena/hmmt_feb_2025)
+
+Each file contains 30 problems normalized to the VERL evaluation schema used by the launch script.
+
+### Training Data
+
+Download the 105,055-row
+[Skywork-OR1 math parquet](https://huggingface.co/datasets/Skywork/Skywork-OR1-RL-Data/blob/main/data/math-00000-of-00001.parquet)
+and save it as `datasets/raw/skywork-or1-math.parquet`. Then run the converter from the repository root:
+
+```bash
+mkdir -p datasets/raw datasets/train
+
+curl -L --fail \
+  https://huggingface.co/datasets/Skywork/Skywork-OR1-RL-Data/resolve/main/data/math-00000-of-00001.parquet \
+  -o datasets/raw/skywork-or1-math.parquet
+
+python scripts/prepare_skywork_math.py \
+  --input datasets/raw/skywork-or1-math.parquet \
+  --output datasets/train/skywork-or1-math-dapo-original.parquet
+```
+
+The converter applies the DAPO-style prompt described in the
+[Direct-OPD appendix](https://arxiv.org/html/2607.05394#A1) and validates the generated parquet.
+`dapo-original` refers to this prompt format; the underlying problems still come from Skywork-OR1.
 
 ## Launch
 
