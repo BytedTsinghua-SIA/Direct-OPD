@@ -80,13 +80,10 @@ docs/setup.md         setup, path, and launch notes
 ## Reference
 
 ```bibtex
-@misc{feng2026directopd,
-  title  = {Weak-to-Strong Generalization via Direct On-Policy Distillation},
-  author = {Shiyuan Feng and Huan-ang Gao and Haohan Chi and Hanlin Wu and Zhilong Zhang and Zheng Jiang and Bingxiang He and Wei-Ying Ma and Ya-Qin Zhang and Hao Zhou},
-  year   = {2026},
-  eprint = {2607.05394},
-  archivePrefix = {arXiv},
-  primaryClass = {cs.LG},
-  url    = {https://arxiv.org/abs/2607.05394}
+@article{feng2026weak,
+  title={Weak-to-Strong Generalization via Direct On-Policy Distillation},
+  author={Feng, Shiyuan and Gao, Huan-ang and Chi, Haohan and Wu, Hanlin and Zhang, Zhilong and Jiang, Zheng and He, Bingxiang and Ma, Wei-Ying and Zhang, Ya-Qin and Zhou, Hao},
+  journal={arXiv preprint arXiv:2607.05394},
+  year={2026}
 }
 ```
