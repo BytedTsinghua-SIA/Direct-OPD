@@ -45,6 +45,7 @@ from verl.trainer.config import AlgoConfig
 from verl.trainer.ppo import core_algos
 from verl.trainer.ppo.core_algos import AdvantageEstimator, agg_loss
 from verl.trainer.ppo.kl_controller import update_kl_loss_coef_from_reward
+from verl.trainer.ppo.privileged_ref import PRIVILEGED_REF_MODES, build_privileged_ref_batch
 from verl.trainer.ppo.metric_utils import (
     compute_data_metrics,
     compute_throughout_metrics,
@@ -122,6 +123,13 @@ def _add_aime24_aime25_average_metric(metric_dict: dict) -> None:
             metric_dict[f"val-core/aime24_aime25_hmmt_feb/acc/ave@{n}"] = (
                 source_values["aime24"] + source_values["aime25"] + source_values["hmmt_feb"]
             ) / 3
+
+
+def _scale_delta_opd_rm_scores(rm_scores: torch.Tensor, scale: float) -> torch.Tensor:
+    """Scale the Direct-OPD dense reward; scale 0 leaves only the KL loss (OPSD)."""
+    if scale == 1.0:
+        return rm_scores
+    return rm_scores * scale
 
 
 def _compute_delta_opd_metrics(
@@ -647,6 +655,15 @@ class RayPPOTrainer:
             raise ValueError(f"reward_mode={self.reward_mode} requires the reward model role for teacher scoring")
         if self.use_teacher_ref_scorer and OmegaConf.select(self.config, "teacher_ref_reward_model") is None:
             raise ValueError(f"reward_mode={self.reward_mode} requires config.teacher_ref_reward_model")
+        self.delta_reward_scale = float(self.config.algorithm.get("delta_reward_scale", 1.0))
+        self.privileged_ref_mode = self.config.algorithm.get("privileged_ref_mode", "none")
+        self.privileged_ref_max_prompt_length = int(self.config.algorithm.get("privileged_ref_max_prompt_length", 4096))
+        if self.privileged_ref_mode not in PRIVILEGED_REF_MODES:
+            raise ValueError(
+                f"algorithm.privileged_ref_mode must be one of {PRIVILEGED_REF_MODES}, got {self.privileged_ref_mode!r}"
+            )
+        if self.privileged_ref_mode != "none" and not self.use_reference_policy:
+            raise ValueError("algorithm.privileged_ref_mode requires a reference policy (use_kl_loss or use_kl_in_reward)")
         self.use_critic = need_critic(self.config)
         self.ray_worker_group_cls = ray_worker_group_cls
         self.device_name = device_name if device_name else self.config.trainer.device
@@ -1833,6 +1850,11 @@ class RayPPOTrainer:
                              batch.batch.pop("overlap_counts")
 
 
+                        if "rm_scores" in batch.batch.keys() and self.delta_reward_scale != 1.0:
+                            batch.batch["rm_scores"] = _scale_delta_opd_rm_scores(
+                                batch.batch["rm_scores"], self.delta_reward_scale
+                            )
+
                         if self.config.reward_model.launch_reward_fn_async:
                             future_reward = compute_reward_async.remote(
                                 data=batch, config=self.config, tokenizer=self.tokenizer
@@ -1910,10 +1932,20 @@ class RayPPOTrainer:
                     if self.use_reference_policy:
                         # compute reference log_prob
                         with marked_timer(str(Role.RefPolicy), timing_raw, color="olive"):
+                            ref_input = batch
+                            if self.privileged_ref_mode != "none":
+                                ref_input, privileged_metrics = build_privileged_ref_batch(
+                                    batch,
+                                    tokenizer=self.tokenizer,
+                                    mode=self.privileged_ref_mode,
+                                    max_prompt_length=self.privileged_ref_max_prompt_length,
+                                    chat_template_kwargs=self.config.data.get("apply_chat_template_kwargs", None),
+                                )
+                                metrics.update(privileged_metrics)
                             if not self.ref_in_actor:
-                                ref_log_prob = self.ref_policy_wg.compute_ref_log_prob(batch)
+                                ref_log_prob = self.ref_policy_wg.compute_ref_log_prob(ref_input)
                             else:
-                                ref_log_prob = self.actor_rollout_wg.compute_ref_log_prob(batch)
+                                ref_log_prob = self.actor_rollout_wg.compute_ref_log_prob(ref_input)
                             batch = batch.union(ref_log_prob)
 
                     # compute values

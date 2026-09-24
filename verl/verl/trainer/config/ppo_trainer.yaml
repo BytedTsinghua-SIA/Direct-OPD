@@ -83,6 +83,15 @@ algorithm:
   # Weight for GRPO outcome advantage in hybrid estimator
   grpo_outcome_weight: 1.0
 
+  # Multiplier on the Direct-OPD dense reward; 0 leaves only the KL loss (OPSD)
+  delta_reward_scale: 1.0
+
+  # Privileged information shown to the frozen KL anchor: none, answer or solution
+  privileged_ref_mode: none
+
+  # Maximum token length of the privileged anchor prompt
+  privileged_ref_max_prompt_length: 4096
+
   # Whether to enable in-reward KL penalty
   use_kl_in_reward: False
 

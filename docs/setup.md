@@ -116,6 +116,69 @@ datasets/eval/aime25.parquet
 datasets/eval/hmmt_feb.parquet
 ```
 
+## Privileged-Anchor Experiments
+
+These runs compare Direct-OPD, OPSD and Direct-OPD with a privileged KL anchor, where the frozen reference sees the
+problem plus its final answer or worked solution. Only the reference prompt changes; the student and both teachers
+still see the plain problem.
+
+### Data
+
+Each dataset is filtered (answer present and consistent with the solution's `\boxed{}`, no multiple-choice or proof
+problems, one `\boxed{}`, decontaminated against `datasets/eval`, student prompt <= 1024 and privileged prompt <= 2048
+tokens) and sampled to 19,200 rows (300 steps x 64 prompts, one pass) with a fixed seed and order.
+
+```bash
+mkdir -p datasets/raw/openthoughts datasets/raw/numinamath
+for i in 0 1; do
+  curl -L --fail -o datasets/raw/openthoughts/$i.parquet \
+    https://huggingface.co/api/datasets/siyanzhao/Openthoughts_math_30k_opsd/parquet/default/train/$i.parquet
+done
+for i in 0 1 2 3 4; do
+  curl -L --fail -o datasets/raw/numinamath/$i.parquet \
+    https://huggingface.co/api/datasets/AI-MO/NuminaMath-CoT/parquet/default/train/$i.parquet
+done
+
+python scripts/prepare_privileged_math.py --source openthoughts_opsd \
+  --input 'datasets/raw/openthoughts/*.parquet' \
+  --output datasets/train/privileged-openthoughts-19200.parquet
+
+# NuminaMath: excludes every OpenThoughts problem, samples 65% olympiads / 20% aops_forum / 10% synthetic_amc / 5% math
+python scripts/prepare_privileged_math.py --source numinamath_cot \
+  --input 'datasets/raw/numinamath/*.parquet' \
+  --exclude 'datasets/raw/openthoughts/*.parquet' \
+  --output datasets/train/privileged-numinamath-19200.parquet
+```
+
+`--tokenizer` defaults to `models/Qwen3-1.7B`.
+
+### Runs
+
+Every run is independent: `bash scripts/run_privileged_experiment.sh <dataset> <method>`.
+
+| method | privileged anchor | Delta reward | KL coefficient |
+|---|---|---|---|
+| `direct_opd` | none | yes | adaptive from 2.5 in [0.5, 2.5] |
+| `opsd_answer` / `opsd_solution` | answer / solution | no (`DELTA_REWARD_SCALE=0`) | fixed 1.0 |
+| `ours_answer` / `ours_solution` | answer / solution | yes | adaptive from 2.5 in [0.5, 2.5] |
+
+`dataset` is `openthoughts` or `numinamath`. Presets only fill unset variables, so e.g. `KL_LOSS_COEF=0.8` still
+overrides. `DRY_RUN=1` prints the resolved command without starting Ray.
+
+Slurm (one job per node, since each run starts and force-stops its own Ray head); submit from the repository root:
+
+```bash
+mkdir -p logs
+for dataset in openthoughts numinamath; do
+  for method in direct_opd opsd_answer opsd_solution ours_answer ours_solution; do
+    sbatch --job-name="${dataset}_${method}" --export=ALL,DATASET=${dataset},METHOD=${method} \
+      scripts/slurm/submit_privileged.sbatch
+  done
+done
+```
+
+Fill in the partition, account and time limit in `scripts/slurm/submit_privileged.sbatch` for your cluster.
+
 ## Notes
 
 - `MANAGE_RAY=True` starts and stops a local Ray head inside the script.

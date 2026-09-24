@@ -325,6 +325,10 @@ class AlgoConfig(BaseConfig):
         lam (float): Trade-off between bias and variance in the GAE estimator.
         adv_estimator (str): Advantage estimator type: "gae", "grpo", "reinforce_plus_plus", etc.
         norm_adv_by_std_in_grpo (bool): Whether to normalize advantages by std (specific to GRPO).
+        delta_reward_scale (float): Multiplier on the Direct-OPD dense reward; 0 leaves only the KL loss (OPSD).
+        privileged_ref_mode (str): Privileged information shown to the frozen KL anchor: "none", "answer" or
+            "solution".
+        privileged_ref_max_prompt_length (int): Maximum token length of the privileged anchor prompt.
         use_kl_in_reward (bool): Whether to enable in-reward KL penalty.
         kl_penalty (str): How to estimate KL divergence: "kl", "abs", "mse", "low_var_kl", or "full".
         kl_ctrl (KLControlConfig): KL control configuration.
@@ -349,6 +353,9 @@ class AlgoConfig(BaseConfig):
     adv_estimator: str = "gae"
     norm_adv_by_std_in_grpo: bool = True
     grpo_outcome_weight: float = 1.0
+    delta_reward_scale: float = 1.0
+    privileged_ref_mode: str = "none"
+    privileged_ref_max_prompt_length: int = 4096
     use_kl_in_reward: bool = False
     kl_penalty: str = "kl"
     kl_ctrl: KLControlConfig = field(default_factory=KLControlConfig)
