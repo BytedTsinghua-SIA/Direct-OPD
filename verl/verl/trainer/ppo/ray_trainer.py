@@ -773,7 +773,7 @@ class RayPPOTrainer:
             entry = {k: v[i] for k, v in base_data.items()}
             lines.append(json.dumps(entry, ensure_ascii=False))
 
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
 
         print(f"Dumped generations to {filename}")
@@ -1258,7 +1258,7 @@ class RayPPOTrainer:
         local_latest_checkpointed_iteration = os.path.join(
             self.config.trainer.default_local_dir, "latest_checkpointed_iteration.txt"
         )
-        with open(local_latest_checkpointed_iteration, "w") as f:
+        with open(local_latest_checkpointed_iteration, "w", encoding="utf-8") as f:
             f.write(str(self.global_steps))
 
         # Worker checkpoint managers upload FSDP shards from every rank. The
